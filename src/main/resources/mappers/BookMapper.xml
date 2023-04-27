@@ -9,6 +9,7 @@
 		<result property="publisherId" column="publisher_id"/>
 		<result property="categoryId" column="category_id"/>
 		<result property="coverImgUrl" column="cover_img_url"/>
+		<result property="likeCount" column="like_count"/>
 		<association property="author" resultMap="AuthorMap"></association>
 		<association property="publisher" resultMap="PublisherMap"></association>
 		<association property="category" resultMap="CategoryMap"></association>
@@ -39,6 +40,8 @@
 		    bt.category_id,
 		    bt.cover_img_url,
 		    
+		    lc.like_count,
+		    
 		    at.author_id,
 		    at.author_name,
 		    
@@ -52,6 +55,7 @@
 		    left outer join author_tb at on(at.author_id = bt.author_id)
 		    left outer join publisher_tb pt on(pt.publisher_id = bt.publisher_id)
 			left outer join category_tb ct on(ct.category_id = bt.category_id)
+			left outer join (select book_id, count(*) as like_count from book_like_tb group by book_id) lc on(lc.book_id = bt.book_id)
 		where
 			1=1
 			<if test = "categoryIds != null">
@@ -91,7 +95,7 @@
 			book_tb bt
 		    left outer join author_tb at on(at.author_id = bt.author_id)
 		    left outer join publisher_tb pt on(pt.publisher_id = bt.publisher_id)
-			left outer join category_tb ct on(ct.category_id = bt.category_id)
+			left outer join category_tb ct on(ct.category_id = bt.category_id) 
 		where
 			bt.book_id = #{bookId}
 	</select>
@@ -125,5 +129,66 @@
 		from
 			category_tb
 	</select>
+	
+	<select id="getLikeCount" parameterType="Integer" resultType="Integer">
+		select
+			count(*)
+		from
+			book_like_tb
+		where
+			book_id = #{bookId}
+	</select>
+	
+	<select id="getLikeStatus" parameterType="hashMap" resultType="Integer">
+		select
+			count(*)
+		from
+			book_like_tb
+		where
+			book_id = #{bookId}
+		and user_id = #{userId}
+	
+	</select>
+	
+	<insert id="setLike">
+		insert into book_like_tb
+		values (0, #{bookId}, #{userId})
+	</insert>
+	
+	<delete id="disLike">
+		delete
+		from
+			book_like_tb
+		where
+			book_id = #{bookId}
+		and user_id = #{userId}
+	</delete>
+	
+	<select id="getRentalListByBookId" parameterType="Integer" resultType="com.toyproject.bookmanagement.entity.RentalList">
+		select
+			blt.book_list_id as bookListId,
+		    bt.book_name as bookName,
+		    brt.user_id as userId
+		from
+			book_list_tb blt
+		    left outer join book_tb bt on(bt.book_id = blt.book_id)
+		    left outer join book_rental_tb brt on(brt.book_list_id = blt.book_list_id)
+		where
+			bt.book_id = #{bookId}
+	</select>
+	
+	<insert id="rentalBook" parameterType="hashMap">
+		insert into book_rental_tb
+		values (0, #{bookListId}, #{userId})
+	</insert>
+	
+	<delete id="returnBook" parameterType="hashMap">
+		delete
+		from
+			book_rental_tb
+		where
+			book_list_id = #{bookListId}
+		and user_id = #{userId}
+	</delete>
 	
 </mapper>
