@@ -123,6 +123,11 @@ public class BookService {
 		return bookRepository.returnBook(map);
 	}
 	
+	public int registBookList(int bookId) {
+		
+		return bookRepository.registBookList(bookId);
+	}
+	
 }
 
 

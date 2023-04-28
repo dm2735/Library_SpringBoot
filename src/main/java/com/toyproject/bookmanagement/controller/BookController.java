@@ -75,4 +75,9 @@ public class BookController {
 	public ResponseEntity<?> returnBook(@PathVariable int bookListId, int userId){
 		return ResponseEntity.ok().body(bookService.returnBook(bookListId, userId));
 	}
+	
+	@PostMapping("/admin/book/list")
+	public ResponseEntity<?> bookListRegister (@RequestBody Map<String, Integer> requestMap) {
+		return ResponseEntity.ok().body(bookService.registBookList(requestMap.get("bookId")));
+	}
 }
